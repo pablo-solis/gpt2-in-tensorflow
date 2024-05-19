@@ -43,21 +43,13 @@ def set_weights_from_torch(tf_layer: tf.keras.layers.Layer,
       raise AttributeError(f"tf_layer of type({type(_tf_layer)}) doesn't have attribute {name}")
   return tf_layer
 
-def torch_gpt2_test(cls: Type[tf.keras.layers.Layer], tf_input: tf.Tensor, 
-                    reference_gpt2: torch.nn.Module, layer: str) -> float:
+def torch_gpt2_test(cls: Type[tf.keras.layers.Layer], torch_layer: torch.nn.Module,
+                    tf_input: tf.Tensor,) -> float:
   """
   take tf layer and pytorch layer with same architechture
   set weights of tf layer to match the pytorch weights
   compare results on tf_input to see if they agree.
   """
-
-  # parse layer and get torch version
-  lst = layer.split('.')
-  if len(lst)==1:
-    torch_layer = getattr(reference_gpt2, lst[0])
-  elif lst[0]=='blocks':
-    torch_layer = getattr(reference_gpt2.blocks[0],lst[2])
-
   # tf version
   tf_layer = cls(cfg)
   tf_layer = set_weights_from_torch(tf_layer, torch_layer)
