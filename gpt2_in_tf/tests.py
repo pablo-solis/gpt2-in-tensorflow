@@ -3,6 +3,7 @@ import numpy as np
 import torch 
 
 from .layers import Config
+
 cfg = Config()
 
 def torch_gpt2_test(cls: tf.keras.layers.Layer, tf_input: tf.Tensor, 
