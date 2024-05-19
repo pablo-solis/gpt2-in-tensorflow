@@ -3,25 +3,35 @@ import numpy as np
 import torch 
 
 from .layers import Config
+from typing import Type
 
 cfg = Config()
 
-def torch_gpt2_test(cls: tf.keras.layers.Layer, tf_input: tf.Tensor, 
+def set_weights_from_torch(tf_layer: tf.keras.layers.Layer,
+                           torch_layer: torch.nn.Module)-> tf.keras.layers.Layer:
+  """
+  This will take named parameters in torch_layer and assign them to tf_layer
+  e.g. 
+  - tf_layer.Weight = torch_layer.Weight
+  - tf_layer.bias = torch_layer.bias
+  """
+  for name, tensor in torch_layer.named_parameters():
+    if hasattr(tf_layer, name):
+      tf_param = getattr(tf_layer,name)
+      new_param = tf.constant(tensor.detach().numpy())
+      tf_param.assing(new_param)
+    else: 
+      raise AttributeError(f"tf_layer doesn't have attribute {name}")
+  return tf_layer
+
+def torch_gpt2_test(cls: Type[tf.keras.layers.Layer], tf_input: tf.Tensor, 
                     reference_gpt2: torch.nn.Module, layer: str) -> float:
   """
   take tf layer and pytorch layer with same architechture
   set weights of tf layer to match the pytorch weights
   compare results on tf_input to see if they agree.
   """
-  param_names = {
-    "embed": ['W_E'],
-    "pos_embed": ['W_pos'],
-    "blocks.0.ln1": ['w','b'],
-    "blocks.0.attn": ['W_Q','b_Q','W_K','b_K','W_V','b_V','W_O','b_O'],
-    "blocks.0.mlp": ['W_in','b_in','W_out','b_out'],
-    "unembed": ['W_U','b_U']
-    }
-  
+
   # parse layer and get torch version
   lst = layer.split('.')
   if len(lst)==1:
@@ -31,17 +41,7 @@ def torch_gpt2_test(cls: tf.keras.layers.Layer, tf_input: tf.Tensor,
 
   # tf version
   tf_layer = cls(cfg)
-
-  # set weights from torch layer
-  for name in param_names[layer]:
-
-    if hasattr(torch_layer, name) and hasattr(tf_layer, name):
-      tf_param = getattr(tf_layer, name)
-      new_params = tf.constant(getattr(torch_layer, name).detach().numpy())
-      tf_param.assign(new_params)
-    else:
-      raise AttributeError(f"{name} not found in torch_layer or pytorch_layer")
-
+  tf_layer = set_weights_from_torch(tf_layer, torch_layer)
   correct_values = compare_tf_pytorch(tf_layer, torch_layer, tf_input)
 
   return correct_values
