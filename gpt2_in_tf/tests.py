@@ -19,7 +19,7 @@ def set_weights_from_torch(tf_layer: tf.keras.layers.Layer,
     if hasattr(tf_layer, name):
       tf_param = getattr(tf_layer,name)
       new_param = tf.constant(tensor.detach().numpy())
-      tf_param.assing(new_param)
+      tf_param.assign(new_param)
     else: 
       raise AttributeError(f"tf_layer doesn't have attribute {name}")
   return tf_layer
