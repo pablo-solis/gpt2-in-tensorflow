@@ -3,8 +3,6 @@ import einops
 from dataclasses import dataclass
 
 # This class is used to initialize each layer
-
-
 @dataclass
 class Config:
   d_model: int = 768 # size of the residual stream
