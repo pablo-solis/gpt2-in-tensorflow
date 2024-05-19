@@ -28,8 +28,8 @@ class LayerNorm(tf.keras.layers.Layer):
   def __init__(self, cfg):
       super().__init__()
       self.cfg = cfg
-      self.w = tf.Variable(tf.ones([self.cfg.d_model]), name="gamma")
-      self.b = tf.Variable(tf.zeros([self.cfg.d_model]), name="beta")
+      self.w = tf.Variable(tf.ones([self.cfg.d_model]), name="w")
+      self.b = tf.Variable(tf.zeros([self.cfg.d_model]), name="b")
 
   def call(self, x):
       # x: [batch, position, d_model]

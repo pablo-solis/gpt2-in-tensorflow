@@ -15,13 +15,32 @@ def set_weights_from_torch(tf_layer: tf.keras.layers.Layer,
   - tf_layer.Weight = torch_layer.Weight
   - tf_layer.bias = torch_layer.bias
   """
-  for name, tensor in torch_layer.named_parameters():
-    if hasattr(tf_layer, name):
-      tf_param = getattr(tf_layer,name)
+
+  # use _tf_layer variable to track current tf_layer
+  # don't overwrite tf_layer variable
+  for full_name, tensor in torch_layer.named_parameters():
+    # handle paramers named e.g. blocks.0.mlp.W_out
+    if full_name.startswith("blocks.") and len(full_name.split('.'))==4:
+      _,idx,layer,name = full_name.split('.')
+      _tf_layer = getattr(tf_layer.blocks[int(idx)],layer)
+
+    # handle paramters named mlp.b_out
+    elif len(full_name.split('.'))==2:
+      layer, name = full_name.split('.')
+      _tf_layer = getattr(tf_layer,layer)
+    
+    # handle paramters named b_out
+    elif len(full_name.split('.'))==1:
+      name = full_name
+      _tf_layer=tf_layer
+
+    # reassign tf param
+    if hasattr(_tf_layer, name):
+      tf_param = getattr(_tf_layer,name)
       new_param = tf.constant(tensor.detach().numpy())
       tf_param.assign(new_param)
     else: 
-      raise AttributeError(f"tf_layer doesn't have attribute {name}")
+      raise AttributeError(f"tf_layer of type({type(_tf_layer)}) doesn't have attribute {name}")
   return tf_layer
 
 def torch_gpt2_test(cls: Type[tf.keras.layers.Layer], tf_input: tf.Tensor, 
