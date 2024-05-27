@@ -37,6 +37,10 @@ def set_weights_from_torch(tf_layer: tf.keras.layers.Layer,
     # reassign tf param
     if hasattr(_tf_layer, name):
       tf_param = getattr(_tf_layer,name)
+      
+      # when on GPU move to CPU before converting to NumPy 
+      if tensor.is_cuda:
+        tensor = tensor.cpu()
       new_param = tf.constant(tensor.detach().numpy())
       tf_param.assign(new_param)
     else: 
