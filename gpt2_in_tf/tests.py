@@ -67,7 +67,10 @@ def compare_tf_pytorch(tf_layer, pytorch_layer, tf_input):
   gives the same numpy array
   """
   tf_output = tf_layer(tf_input)
-  torch_output = pytorch_layer(torch.tensor(tf_input.numpy()))
+  torch_input = torch.tensor(tf_input.numpy())
+  if torch.cuda.is_available():
+    torch_input = torch_input.to(device="cuda")
+  torch_output = pytorch_layer(torch_input)
 
   if torch_output.is_cuda:
     torch_output = torch_output.cpu()
