@@ -69,6 +69,9 @@ def compare_tf_pytorch(tf_layer, pytorch_layer, tf_input):
   tf_output = tf_layer(tf_input)
   torch_output = pytorch_layer(torch.tensor(tf_input.numpy()))
 
+  if torch_output.is_cuda:
+    torch_output = torch_output.cpu()
+  
   comp = tf.experimental.numpy.isclose(
       tf_output.numpy(), torch_output.detach().numpy(), rtol=1e-2, atol=1e-2)
   correct_values = (comp.numpy().sum() / tf.size(comp)).numpy()
